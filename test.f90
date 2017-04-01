@@ -6,35 +6,51 @@ program test_pcre
   implicit none
 
   type(pcre_type) :: regex
-  type(c_ptr) :: c_regex
 
-  character(len=*), parameter :: pattern = ".*(a..).*"
+  character(len=*), parameter :: pattern = "(a..)"
   character(len=*), parameter :: subject = "what is this?"
 
   integer, parameter :: ovecsize = 30
-  integer, dimension(ovecsize) :: ovector
+  integer, dimension(0:ovecsize-1) :: ovector
 
   integer :: error
 
-  ! character(len=*) :: f_pattern = pattern // c_null_char
-  character(len=len_trim(pattern)+1, kind=c_char) :: c_pattern
-  character(len=len_trim(subject)+1, kind=c_char) :: c_subject
-
   regex = pcre_compile(pattern, 0)
+
+  if (.not. c_associated(regex%regex)) then
+     print*,"PCRE compilation failed"
+     stop 1
+  end if
 
   error = pcre_exec(regex, c_null_ptr, subject, 0, 0, ovector)
 
-  print*, ovector, error
+  if (error < 0) then
+     select case(error)
+     case (PCRE_ERROR_NOMATCH)
+        print*,"No match"
+     case default
+        print*,"Matching error ", error
+     end select
+     stop 1
+  end if
 
-  ! NULL-terminate pattern
-  c_pattern = trim(pattern) // c_null_char
-  c_subject = trim(subject) // c_null_char
+  print('(A,I0)'),"Match succeeded at offset ", ovector(0)
 
-  c_regex = c_my_pcre_compile(c_pattern)
-  error = c_my_pcre_exec(c_regex, c_subject)
-  print*, c_regex, error
+  if (error == 0) then
+     error = ovecsize / 3
+     print('(A,I0,A)'),"ovector only has room for ", error - 1, " captured substrings"
+  end if
 
-  error = c_my_together(c_pattern, c_subject)
-  print*, error
+  block
+    integer :: i
+    integer :: substring_start
+    integer :: substring_length
+
+    do i = 0, error-1
+       substring_start = ovector(2*i) + 1
+       substring_length = ovector(2*i+1) - ovector(2*i) + 1
+       print('(I0,": ", A)'), i,  subject(substring_start:substring_length)
+    end do
+  end block
 
 end program test_pcre
