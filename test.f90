@@ -7,8 +7,12 @@ program test_pcre
 
   type(pcre_type) :: regex
 
-  character(len=*), parameter :: pattern = "(a..)"
-  character(len=*), parameter :: subject = "what is this?"
+  character(len=*), parameter :: pattern &
+       = "[\\s,]*(~@|[\[\]{}()'`~^@])|;.*)"
+       ! = "[\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:\\.|[^\\\"])*\"|;.*|[^\\s\\[\\]{}()'\"`,;]*)"
+       ! = "[\s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*""|;.*|[^\s\[\]{}('""`,;)]*)"
+  character(len=*), parameter :: subject = "(+ 2 (* 3 4))"
+  integer, parameter :: subject_length = len_trim(subject)
 
   integer, parameter :: ovecsize = 30
   integer, dimension(0:ovecsize-1) :: ovector
@@ -44,13 +48,81 @@ program test_pcre
   block
     integer :: i
     integer :: substring_start
-    integer :: substring_length
+    integer :: substring_end
 
     do i = 0, error-1
        substring_start = ovector(2*i) + 1
-       substring_length = ovector(2*i+1) - ovector(2*i) + 1
-       print('(I0,": ", A)'), i,  subject(substring_start:substring_length)
+       substring_end = ovector((2*i)+1)
+       print('(I0,": ", A)'), i,  subject(substring_start:substring_end)
     end do
   end block
 
+  block
+    integer :: status
+    integer(c_int), target :: namecount
+    type(c_ptr) :: c_namecount
+
+    c_namecount = c_loc(namecount)
+
+    status = pcre_fullinfo(regex, c_null_ptr, PCRE_INFO_NAMECOUNT, c_namecount)
+
+    if (namecount <= 0) then
+       print*, "No named substrings"
+    else
+       ! Get named substrings
+    end if
+    
+  end block
+  
+  block
+
+    integer :: options
+    integer :: start_offset
+
+    do
+       options = 0
+       start_offset = ovector(1)
+
+       ! If the previous match was for an empty string, we are finished if we are
+       ! at the end of the subject. Otherwise, arrange to run another match at the
+       ! same point to see if a non-empty match can be found.
+       
+       if (ovector(0) == ovector(1)) then
+          if (ovector(0) == subject_length) exit
+          ! options = PCRE_NOTEMPTY_ATSTART | PCRE_ANCHORED;
+          options = 268435464
+       end if
+
+       ! Run the next matching operation
+
+       error = pcre_exec(regex, c_null_ptr, subject, start_offset, options, ovector)
+
+       if (error == PCRE_ERROR_NOMATCH) then
+          if (options == 0) exit
+          ovector(1) = start_offset + 1
+          continue
+       end if
+
+       if (error < 0) then
+          print('(A,I0)'), "Matching error ", error
+          stop 1
+       end if
+
+       print*,""
+       print('(A,I0)'), "Match succeeded again at offset ", ovector(0)
+       
+       block
+         integer :: i
+         integer :: substring_start
+         integer :: substring_end
+
+         do i = 0, error-1
+            substring_start = ovector(2*i) + 1
+            substring_end = ovector((2*i)+1)
+            print('(I0,": ", A)'), i,  subject(substring_start:substring_end)
+         end do
+       end block
+    end do
+  end block
+    
 end program test_pcre
