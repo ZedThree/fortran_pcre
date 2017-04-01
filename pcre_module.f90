@@ -99,13 +99,13 @@ contains
     character(len=*), intent(in) :: pattern
     integer(c_int), intent(in) :: options
 
-    character(len=len_trim(pattern)+1, kind=c_char) :: c_pattern
+    character(len=len(pattern)+1, kind=c_char) :: c_pattern
     type(c_ptr) :: c_pcre
     type(c_ptr) :: error
     integer(c_int) :: erroffset
 
     ! NULL-terminate pattern
-    c_pattern = trim(pattern) // c_null_char
+    c_pattern = pattern // c_null_char
 
     c_pcre = c_pcre_compile(c_pattern, options, error, erroffset, &
          c_null_ptr)
@@ -125,13 +125,13 @@ contains
     integer, dimension(:), intent(out) :: ovector
     integer :: error
 
-    character(len=len_trim(subject)+1, kind=c_char) :: c_subject
+    character(len=len(subject)+1, kind=c_char) :: c_subject
 
     ! NULL-terminate subject
-    c_subject = trim(subject) // c_null_char
+    c_subject = subject // c_null_char
 
     error = c_pcre_exec(regex%regex, extra, c_subject, &
-         len_trim(subject)+1, startoffset, options, &
+         len(subject), startoffset, options, &
          ovector, size(ovector))
 
   end function pcre_exec
