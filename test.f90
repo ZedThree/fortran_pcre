@@ -8,23 +8,16 @@ program test_pcre
   type(pcre_type) :: regex
 
   character(len=*), parameter :: pattern &
-       ! = "[a-z]+$"
-       ! = "[a-z]+\s"
-       ! = "[\\s]*"
-       ! = "(~@|[\[\]{}()'`~^@]|;.*|[^\[\]{}()'`,;])"
-       ! = "[\s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^""\\])*""|;.*|[^\s\[\]{}()'`,;""]*)"
-       = "[\s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*""|;.*|[^\s\[\]{}('""`,;)]*)" 
-       ! = "[\s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*""|;.*|[^\s\[\]{}('""`,;)]*)"
-       ! = "[\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:\\.|[^\\\"])*\"|;.*|[^\\s\\[\\]{}()'\"`,;]*)"
+       = "[ \s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*""|;.*|[^ \s\[\]{}('""`,;)]*)"
   character(len=*), parameter :: subject = "(+ 2 (* 3 4))"
-  ! character(len=*), parameter :: subject = "what is this?"
-  ! character(len=*), parameter :: subject = "abc123def"
   integer, parameter :: subject_length = len_trim(subject)
 
   integer, parameter :: ovecsize = 30
   integer, dimension(0:ovecsize-1) :: ovector
 
   integer :: error
+
+  print*, ""
 
   regex = pcre_compile(pattern, 0)
 
@@ -78,9 +71,9 @@ program test_pcre
     else
        ! Get named substrings
     end if
-    
+
   end block
-  
+
   block
 
     integer :: options
@@ -93,7 +86,7 @@ program test_pcre
        ! If the previous match was for an empty string, we are finished if we are
        ! at the end of the subject. Otherwise, arrange to run another match at the
        ! same point to see if a non-empty match can be found.
-       
+
        if (ovector(0) == ovector(1)) then
           if (ovector(0) == subject_length) exit
           ! options = PCRE_NOTEMPTY_ATSTART | PCRE_ANCHORED;
@@ -117,7 +110,7 @@ program test_pcre
 
        print*,""
        print('(A,I0)'), "Match succeeded again at offset ", ovector(0)
-       
+
        block
          integer :: i
          integer :: substring_start
@@ -129,7 +122,8 @@ program test_pcre
             print('(I0,": ", A)'), i,  subject(substring_start:substring_end)
          end do
        end block
+       print*, "No named substrings"
     end do
   end block
-    
+
 end program test_pcre
