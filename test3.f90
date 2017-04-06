@@ -1,3 +1,7 @@
+! Test the Fortran PCRE wrapper
+!
+! Examples taken from
+! https://github.com/niklongstone/regular-expression-cheat-sheet
 program test_pcre
 
   use, intrinsic :: iso_c_binding
@@ -9,100 +13,68 @@ program test_pcre
      character(len=:), allocatable :: token
   end type token_type
 
-  type(token_type), dimension(:), allocatable :: tokens
-
-  character(len=:), allocatable :: pattern
-  character(len=:), allocatable :: subject
-
-  ! pattern = "[ \s,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*""|;.*|[^ \s\[\]{}('""`,;)]*)"
-  ! subject = "(+ 2 (* 3 4))"
-
-  ! character(len=*), parameter :: pattern = "[ ,]*(~@|[\[\]{}()'`~^@]|""(?:\\.|[^\\""])*""|;.*|[^ \[\]{}('""`,;)]*)"
-  ! character(len=*), parameter :: subject = "(+ 2 (* 3 4))"
-
+  ! Start of string or line
   call test_valid_pattern("^foam", "foam", "foam")
   call test_invalid_pattern("^foam", "bath foam")
 
+  ! Start of string, any match mode
+  call test_valid_pattern("\Afoam", "foam", "foam")
+  call test_invalid_pattern("\Afoam", "bath foam")
+
+  ! End of string or line
   call test_valid_pattern("finish$", "finish", "finish")
+  call test_invalid_pattern("finish$", "finnish")
 
-  pattern = "abc(.*)ghi"
-  subject = "abcdefghi"
+  ! End of string, any match mode
+  call test_valid_pattern("finish\Z", "finish", "finish")
+  call test_invalid_pattern("finish\Z", "finnish")
 
-  print('(A,A,A,A)'), "Searching ", subject, " for ", pattern
-  print*, "Should find: 'def:'"
+  ! ! Word boundary
+  call test_valid_pattern("\bis\b", "This island is beautiful", "is")
+  call test_invalid_pattern("\bis\b", "This island isn't beautiful")
 
-  tokens = tokeniser(pattern, subject)
+  ! Not word boundary
+  call test_valid_pattern("\Bland", "island", "land")
+  call test_invalid_pattern("\Bland", "peninsula")
 
-  call print_tokens(tokens)
+  ! Positive lookahead
+  call test_valid_pattern("question(?=s)", "questions", "question")
+  call test_invalid_pattern("question(?=s)", "question")
 
-  deallocate(tokens)
+  ! Negative lookahead
+  call test_valid_pattern("answer(?!s)", "answer", "answer")
+  call test_invalid_pattern("answer(?!s)", "answers")
 
-  pattern = "abc.*(ghi)"
-  subject = "abcdefghi"
+  ! Positive look-behind
+  call test_valid_pattern("(?<=appl)e", "apple", "e")
+  call test_invalid_pattern("(?<=appl)e", "orange")
 
-  print('(A,A,A,A)'), "Searching ", subject, " for ", pattern
-  print*, "Should find: 'ghi:'"
+  ! Negative look-behind
+  call test_valid_pattern("(?<!goo)d", "mood", "d")
+  call test_invalid_pattern("(?<!goo)d", "good")
 
-  tokens = tokeniser(pattern, subject)
+  ! Digit
+  call test_valid_pattern("\d+", "0101", "0101")
+  call test_invalid_pattern("\d+", "string")
 
-  call print_tokens(tokens)
+  ! Not a digit
+  call test_valid_pattern("\D+", "string", "string")
+  call test_invalid_pattern("\D+", "0101")
 
-  deallocate(tokens)
-  
-  pattern = "abc(def)(ghi)"
-  subject = "abcdefghi"
+  ! Word character
+  call test_valid_pattern("\w+", "string", "string")
+  call test_invalid_pattern("\w+", "0101")
 
-  print('(A,A,A,A)'), "Searching ", subject, " for ", pattern
-  print*, "Should find: 'def:ghi:'"
-
-  tokens = tokeniser(pattern, subject)
-
-  call print_tokens(tokens)
-
-  deallocate(tokens)
-
-  pattern = "[ ]*([a-z]*)"
-  subject = "    super    doge"
-
-  print('(A,A,A,A)'), "Searching ", subject, " for ", pattern
-  print*, "Should find: 'super:doge:'"
-
-  tokens = tokeniser(pattern, subject)
-
-  call print_tokens(tokens)
-
-  deallocate(tokens)
-
-  pattern = "([0-9]+)"
-  subject = "abc123def456"
-
-  print('(A,A,A,A)'), "Searching ", subject, " for ", pattern
-  print*, "Should find: '123:456:'"
-
-  tokens = tokeniser(pattern, subject)
-
-  call print_tokens(tokens)
-
-  deallocate(tokens)
-
-  pattern = "(\d+)"
-  subject = "abc123def456"
-
-  print('(A,A,A,A)'), "Searching ", subject, " for ", pattern
-  print*, "Should find: '123:456:'"
-
-  tokens = tokeniser(pattern, subject)
-
-  call print_tokens(tokens)
-
-  deallocate(tokens)
+  ! Not a word character
+  call test_valid_pattern("\W+", ".$?%", ".$?%")
+  call test_invalid_pattern("\W+", "string")
 
 contains
 
   subroutine test_valid_pattern(pattern, valid_match, expected)
-    character(len=:), allocatable, intent(in) :: pattern
-    character(len=:), allocatable, intent(in) :: valid_match
-    character(len=:), allocatable, intent(in) :: expected
+    character(len=*), intent(in) :: pattern
+    character(len=*), intent(in) :: valid_match
+    character(len=*), intent(in) :: expected
 
     logical :: status
 
@@ -113,13 +85,17 @@ contains
 
     tokens = tokeniser(pattern, valid_match)
 
-    call print_tokens(tokens)
+    if (size(tokens) > 0) then
+       call print_tokens(tokens)
+    end if
+    
+    print('(A)'), "--------------------"
 
-  end subroutine test_pattern
+  end subroutine test_valid_pattern
   
   subroutine test_invalid_pattern(pattern, invalid_match)
-    character(len=:), allocatable, intent(in) :: pattern
-    character(len=:), allocatable, intent(in) :: invalid_match
+    character(len=*), intent(in) :: pattern
+    character(len=*), intent(in) :: invalid_match
 
     logical :: status
 
@@ -128,20 +104,22 @@ contains
     print('(A,A,A,A)'), "Searching ", invalid_match, " for ", pattern
     print('(A)'), "Should not match"
 
-    tokens = tokeniser(pattern, subject)
+    tokens = tokeniser(pattern, invalid_match)
 
-    call print_tokens(tokens)
-
+    if (size(tokens) > 0) then
+       call print_tokens(tokens)
+    end if
+    
     print('(A)'), "--------------------"
 
-  end subroutine test_pattern
+  end subroutine test_invalid_pattern
 
   subroutine print_tokens(tokens)
     type(token_type), dimension(:), intent(in) :: tokens
     integer :: i
     
     do i=1, size(tokens)
-       write(*,'(A,":")', advance='no') tokens(i)%token
+       write(*,'(A," ")', advance='no') tokens(i)%token
     end do
     print*, ""
 
@@ -171,13 +149,26 @@ contains
 
     if (.not. c_associated(regex%regex)) then
        print*,"PCRE compilation failed"
-       stop 1
+       allocate(tokens(0))
+       return
     end if
 
     error = pcre_exec(regex, c_null_ptr, subject, 0, 0, ovector)
 
     if (error < 0) then
+       select case(error)
+       case (PCRE_ERROR_NOMATCH)
+          print*,"No match"
+       case default
+          print*,"Matching error ", error
+       end select
+       allocate(tokens(0))
        return
+    end if
+
+    if (error == 0) then
+       error = ovecsize / 3
+       print('(A,I0,A)'),"ovector only has room for ", error - 1, " captured substrings"
     end if
 
     total_matches = 1
@@ -186,10 +177,13 @@ contains
     block
       integer :: substring_start
       integer :: substring_end
+      integer :: i
 
-      substring_start = ovector(2) + 1
-      substring_end = ovector(3)
-      tokens(1) = token_type(subject(substring_start:substring_end))
+      do i = 0, error - 1
+         substring_start = ovector(2*i) + 1
+         substring_end = ovector(2*i + 1)
+         tokens(i+1) = token_type(subject(substring_start:substring_end))
+      end do
     end block
 
     block
@@ -198,10 +192,10 @@ contains
 
       do
          options = 0
-         start_offset = ovector(3)
+         start_offset = ovector(1)
 
-         if (ovector(2) == ovector(3)) then
-            if (ovector(2) == len(subject)) exit
+         if (ovector(0) == ovector(1)) then
+            if (ovector(0) == len(subject)) exit
          end if
 
          error = pcre_exec(regex, c_null_ptr, subject, start_offset, options, ovector)
@@ -214,7 +208,8 @@ contains
 
          if (error < 0) then
             print('(A,I0)'), "Matching error ", error
-            stop 1
+            allocate(tokens(0))
+            return
          end if
 
          block
@@ -232,6 +227,5 @@ contains
     end block
 
   end function tokeniser
-
 
 end program test_pcre
