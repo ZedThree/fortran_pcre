@@ -54,8 +54,10 @@ module pcre_module
        integer(c_int) :: error
      end function c_pcre_fullinfo
 
-     ! subroutine pcre_free bind(C, name="pcre_free")
-     ! end subroutine pcre_free
+     subroutine c_pcre_free(code) bind(C, name="pcre_free")
+       import
+       type(c_ptr) :: code
+     end subroutine c_pcre_free
 
   end interface
 
@@ -115,5 +117,12 @@ contains
 
     error = c_pcre_fullinfo(regex%regex, extra, what, where)
   end function pcre_fullinfo
+
+  subroutine pcre_free(regex)
+    implicit none
+    type(pcre_type) :: regex
+
+    call c_pcre_free(regex%regex)
+  end subroutine pcre_free
 
 end module pcre_module
