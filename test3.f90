@@ -80,7 +80,7 @@ program test_pcre
   number_failed = number_failed + test_invalid_pattern("good\smorning", "good.morning")
 
   ! Not whitespace
-  number_failed = number_failed + test_valid_pattern("good\Smorning", "goodmorning", "goodmorning")
+  number_failed = number_failed + test_valid_pattern("good\Smorning", "good.morning", "good.morning")
   number_failed = number_failed + test_invalid_pattern("good\Smorning", "good morning")
   
   ! Digit
@@ -121,7 +121,7 @@ program test_pcre
 
   ! Zero or one
   number_failed = number_failed + test_valid_pattern("yes?", "yes, ye", "yes ye")
-  number_failed = number_failed + test_invalid_pattern("yes?", "yesss")
+  number_failed = number_failed + test_invalid_pattern("yes?$", "yesss")
 
   ! n times exactly
   number_failed = number_failed + test_valid_pattern("fo{2}", "foo", "foo")
