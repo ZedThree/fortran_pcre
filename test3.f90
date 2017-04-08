@@ -29,7 +29,7 @@ program test_pcre
   call test_valid_pattern("finish\Z", "finish", "finish")
   call test_invalid_pattern("finish\Z", "finnish")
 
-  ! ! Word boundary
+  ! Word boundary
   call test_valid_pattern("\bis\b", "This island is beautiful", "is")
   call test_invalid_pattern("\bis\b", "This island isn't beautiful")
 
@@ -53,6 +53,34 @@ program test_pcre
   call test_valid_pattern("(?<!goo)d", "mood", "d")
   call test_invalid_pattern("(?<!goo)d", "good")
 
+  ! Character class definition
+  call test_valid_pattern("[axf]", "a, x, f", "a x f")
+  call test_invalid_pattern("[axf]", "b")
+
+  ! Character class range
+  call test_valid_pattern("[a-c]", "a, b, c", "a b c")
+  call test_invalid_pattern("[a-c]", "d")
+
+  ! Escape in character class
+  call test_valid_pattern("[a-f\.]", "a, b, .", "a b .")
+  call test_invalid_pattern("[a-f\.]", "g")
+
+  ! Not in class
+  call test_valid_pattern("[^abc]", "de", "d e")
+  call test_invalid_pattern("[^abc]", "a")
+
+  ! Any character except newline
+  call test_valid_pattern("b.ttle", "battle, bottle", "battle bottle")
+  call test_invalid_pattern("b.ttle", "bttle")
+
+  ! Whitespace
+  call test_valid_pattern("good\smorning", "good morning", "good morning")
+  call test_invalid_pattern("good\smorning", "good.morning")
+
+  ! Not whitespace
+  call test_valid_pattern("good\Smorning", "goodmorning", "goodmorning")
+  call test_invalid_pattern("good\Smorning", "good morning")
+  
   ! Digit
   call test_valid_pattern("\d+", "0101", "0101")
   call test_invalid_pattern("\d+", "string")
@@ -69,6 +97,42 @@ program test_pcre
   call test_valid_pattern("\W+", ".$?%", ".$?%")
   call test_invalid_pattern("\W+", "string")
 
+  ! Alternation
+  call test_valid_pattern("apple|orange", "orange, apple", "orange apple")
+  call test_invalid_pattern("apple|orange", "melon")
+
+  ! Subpattern
+  call test_valid_pattern("foot(er|ball)", "footer, football", "footer er football ball")
+  call test_invalid_pattern("foot(er|ball)", "footpath")
+
+  ! Non-capturing subpattern
+  call test_valid_pattern("foot(?:er|ball)", "footer, football", "footer football")
+  call test_invalid_pattern("foot(?:er|ball)", "footpath")
+
+  ! One or more
+  call test_valid_pattern("ye+ah", "yeah, yeeeeeah", "yeah yeeeeeah")
+  call test_invalid_pattern("ye+ah", "yah")
+
+  ! Zero or more
+  call test_valid_pattern("ye*ah", "yeah, yeeeeeah, yah", "yeah yeeeeeah yah")
+  call test_invalid_pattern("ye*ah", "yeh")
+
+  ! Zero or one
+  call test_valid_pattern("yes?", "yes, ye", "yes ye")
+  call test_invalid_pattern("yes?", "yesss")
+
+  ! n times exactly
+  call test_valid_pattern("fo{2}", "foo", "foo")
+  call test_invalid_pattern("fo{2}", "fo")
+
+  ! Between n and m times
+  call test_valid_pattern("go{2,3}d", "good, goood", "good goood")
+  call test_invalid_pattern("go{2,3}d", "gooood")
+
+  ! At least n times
+  call test_valid_pattern("go{2,}", "goo, gooo", "goo gooo")
+  call test_invalid_pattern("go{2,}", "go")
+
 contains
 
   subroutine test_valid_pattern(pattern, valid_match, expected)
@@ -80,7 +144,7 @@ contains
 
     type(token_type), dimension(:), allocatable :: tokens
 
-    print('(A,A,A,A)'), "Searching ", valid_match, " for ", pattern
+    print('(A,A,A,A,A)'), "Searching '", valid_match, "' for '", pattern, "'"
     print('(A,A)'), "Should match: ", expected
 
     tokens = tokeniser(pattern, valid_match)
@@ -101,7 +165,7 @@ contains
 
     type(token_type), dimension(:), allocatable :: tokens
 
-    print('(A,A,A,A)'), "Searching ", invalid_match, " for ", pattern
+    print('(A,A,A,A,A)'), "Searching '", invalid_match, "' for '", pattern, "'"
     print('(A)'), "Should not match"
 
     tokens = tokeniser(pattern, invalid_match)
@@ -171,7 +235,7 @@ contains
        print('(A,I0,A)'),"ovector only has room for ", error - 1, " captured substrings"
     end if
 
-    total_matches = 1
+    total_matches = error
     allocate(tokens(total_matches))
 
     block
@@ -213,15 +277,18 @@ contains
          end if
 
          block
+           integer :: i
            integer :: substring_start
            integer :: substring_end
            type(token_type) :: found_token
 
-           total_matches = total_matches + 1
-           substring_start = ovector(2) + 1
-           substring_end = ovector(3)
-           found_token = token_type(subject(substring_start:substring_end))
-           tokens = [tokens, found_token]
+           do i = 0, error-1
+              total_matches = total_matches + 1
+              substring_start = ovector(2*i) + 1
+              substring_end = ovector((2*i)+1)
+              found_token = token_type(subject(substring_start:substring_end))
+              tokens = [tokens, found_token]
+           end do
          end block
       end do
     end block
