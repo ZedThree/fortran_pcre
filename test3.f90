@@ -13,129 +13,138 @@ program test_pcre
      character(len=:), allocatable :: token
   end type token_type
 
+  integer :: number_failed = 0
+
   ! Start of string or line
-  call test_valid_pattern("^foam", "foam", "foam")
-  call test_invalid_pattern("^foam", "bath foam")
+  number_failed = number_failed + test_valid_pattern("^foam", "foam", "foam")
+  number_failed = number_failed + test_invalid_pattern("^foam", "bath foam")
 
   ! Start of string, any match mode
-  call test_valid_pattern("\Afoam", "foam", "foam")
-  call test_invalid_pattern("\Afoam", "bath foam")
+  number_failed = number_failed + test_valid_pattern("\Afoam", "foam", "foam")
+  number_failed = number_failed + test_invalid_pattern("\Afoam", "bath foam")
 
   ! End of string or line
-  call test_valid_pattern("finish$", "finish", "finish")
-  call test_invalid_pattern("finish$", "finnish")
+  number_failed = number_failed + test_valid_pattern("finish$", "finish", "finish")
+  number_failed = number_failed + test_invalid_pattern("finish$", "finnish")
 
   ! End of string, any match mode
-  call test_valid_pattern("finish\Z", "finish", "finish")
-  call test_invalid_pattern("finish\Z", "finnish")
+  number_failed = number_failed + test_valid_pattern("finish\Z", "finish", "finish")
+  number_failed = number_failed + test_invalid_pattern("finish\Z", "finnish")
 
   ! Word boundary
-  call test_valid_pattern("\bis\b", "This island is beautiful", "is")
-  call test_invalid_pattern("\bis\b", "This island isn't beautiful")
+  number_failed = number_failed + test_valid_pattern("\bis\b", "This island is beautiful", "is")
+  number_failed = number_failed + test_invalid_pattern("\bis\b", "This island isn't beautiful")
 
   ! Not word boundary
-  call test_valid_pattern("\Bland", "island", "land")
-  call test_invalid_pattern("\Bland", "peninsula")
+  number_failed = number_failed + test_valid_pattern("\Bland", "island", "land")
+  number_failed = number_failed + test_invalid_pattern("\Bland", "peninsula")
 
   ! Positive lookahead
-  call test_valid_pattern("question(?=s)", "questions", "question")
-  call test_invalid_pattern("question(?=s)", "question")
+  number_failed = number_failed + test_valid_pattern("question(?=s)", "questions", "question")
+  number_failed = number_failed + test_invalid_pattern("question(?=s)", "question")
 
   ! Negative lookahead
-  call test_valid_pattern("answer(?!s)", "answer", "answer")
-  call test_invalid_pattern("answer(?!s)", "answers")
+  number_failed = number_failed + test_valid_pattern("answer(?!s)", "answer", "answer")
+  number_failed = number_failed + test_invalid_pattern("answer(?!s)", "answers")
 
   ! Positive look-behind
-  call test_valid_pattern("(?<=appl)e", "apple", "e")
-  call test_invalid_pattern("(?<=appl)e", "orange")
+  number_failed = number_failed + test_valid_pattern("(?<=appl)e", "apple", "e")
+  number_failed = number_failed + test_invalid_pattern("(?<=appl)e", "orange")
 
   ! Negative look-behind
-  call test_valid_pattern("(?<!goo)d", "mood", "d")
-  call test_invalid_pattern("(?<!goo)d", "good")
+  number_failed = number_failed + test_valid_pattern("(?<!goo)d", "mood", "d")
+  number_failed = number_failed + test_invalid_pattern("(?<!goo)d", "good")
 
   ! Character class definition
-  call test_valid_pattern("[axf]", "a, x, f", "a x f")
-  call test_invalid_pattern("[axf]", "b")
+  number_failed = number_failed + test_valid_pattern("[axf]", "a, x, f", "a x f")
+  number_failed = number_failed + test_invalid_pattern("[axf]", "b")
 
   ! Character class range
-  call test_valid_pattern("[a-c]", "a, b, c", "a b c")
-  call test_invalid_pattern("[a-c]", "d")
+  number_failed = number_failed + test_valid_pattern("[a-c]", "a, b, c", "a b c")
+  number_failed = number_failed + test_invalid_pattern("[a-c]", "d")
 
   ! Escape in character class
-  call test_valid_pattern("[a-f\.]", "a, b, .", "a b .")
-  call test_invalid_pattern("[a-f\.]", "g")
+  number_failed = number_failed + test_valid_pattern("[a-f\.]", "a, b, .", "a b .")
+  number_failed = number_failed + test_invalid_pattern("[a-f\.]", "g")
 
   ! Not in class
-  call test_valid_pattern("[^abc]", "de", "d e")
-  call test_invalid_pattern("[^abc]", "a")
+  number_failed = number_failed + test_valid_pattern("[^abc]", "de", "d e")
+  number_failed = number_failed + test_invalid_pattern("[^abc]", "a")
 
   ! Any character except newline
-  call test_valid_pattern("b.ttle", "battle, bottle", "battle bottle")
-  call test_invalid_pattern("b.ttle", "bttle")
+  number_failed = number_failed + test_valid_pattern("b.ttle", "battle, bottle", "battle bottle")
+  number_failed = number_failed + test_invalid_pattern("b.ttle", "bttle")
 
   ! Whitespace
-  call test_valid_pattern("good\smorning", "good morning", "good morning")
-  call test_invalid_pattern("good\smorning", "good.morning")
+  number_failed = number_failed + test_valid_pattern("good\smorning", "good morning", "good morning")
+  number_failed = number_failed + test_invalid_pattern("good\smorning", "good.morning")
 
   ! Not whitespace
-  call test_valid_pattern("good\Smorning", "goodmorning", "goodmorning")
-  call test_invalid_pattern("good\Smorning", "good morning")
+  number_failed = number_failed + test_valid_pattern("good\Smorning", "goodmorning", "goodmorning")
+  number_failed = number_failed + test_invalid_pattern("good\Smorning", "good morning")
   
   ! Digit
-  call test_valid_pattern("\d+", "0101", "0101")
-  call test_invalid_pattern("\d+", "string")
+  number_failed = number_failed + test_valid_pattern("\d+", "0101", "0101")
+  number_failed = number_failed + test_invalid_pattern("\d+", "string")
 
   ! Not a digit
-  call test_valid_pattern("\D+", "string", "string")
-  call test_invalid_pattern("\D+", "0101")
+  number_failed = number_failed + test_valid_pattern("\D+", "string", "string")
+  number_failed = number_failed + test_invalid_pattern("\D+", "0101")
 
   ! Word character
-  call test_valid_pattern("\w+", "string", "string")
-  call test_invalid_pattern("\w+", "0101")
+  number_failed = number_failed + test_valid_pattern("\w+", "string", "string")
+  number_failed = number_failed + test_invalid_pattern("\w+", "0101")
 
   ! Not a word character
-  call test_valid_pattern("\W+", ".$?%", ".$?%")
-  call test_invalid_pattern("\W+", "string")
+  number_failed = number_failed + test_valid_pattern("\W+", ".$?%", ".$?%")
+  number_failed = number_failed + test_invalid_pattern("\W+", "string")
 
   ! Alternation
-  call test_valid_pattern("apple|orange", "orange, apple", "orange apple")
-  call test_invalid_pattern("apple|orange", "melon")
+  number_failed = number_failed + test_valid_pattern("apple|orange", "orange, apple", "orange apple")
+  number_failed = number_failed + test_invalid_pattern("apple|orange", "melon")
 
   ! Subpattern
-  call test_valid_pattern("foot(er|ball)", "footer, football", "footer er football ball")
-  call test_invalid_pattern("foot(er|ball)", "footpath")
+  number_failed = number_failed + test_valid_pattern("foot(er|ball)", "footer, football", "footer er football ball")
+  number_failed = number_failed + test_invalid_pattern("foot(er|ball)", "footpath")
 
   ! Non-capturing subpattern
-  call test_valid_pattern("foot(?:er|ball)", "footer, football", "footer football")
-  call test_invalid_pattern("foot(?:er|ball)", "footpath")
+  number_failed = number_failed + test_valid_pattern("foot(?:er|ball)", "footer, football", "footer football")
+  number_failed = number_failed + test_invalid_pattern("foot(?:er|ball)", "footpath")
 
   ! One or more
-  call test_valid_pattern("ye+ah", "yeah, yeeeeeah", "yeah yeeeeeah")
-  call test_invalid_pattern("ye+ah", "yah")
+  number_failed = number_failed + test_valid_pattern("ye+ah", "yeah, yeeeeeah", "yeah yeeeeeah")
+  number_failed = number_failed + test_invalid_pattern("ye+ah", "yah")
 
   ! Zero or more
-  call test_valid_pattern("ye*ah", "yeah, yeeeeeah, yah", "yeah yeeeeeah yah")
-  call test_invalid_pattern("ye*ah", "yeh")
+  number_failed = number_failed + test_valid_pattern("ye*ah", "yeah, yeeeeeah, yah", "yeah yeeeeeah yah")
+  number_failed = number_failed + test_invalid_pattern("ye*ah", "yeh")
 
   ! Zero or one
-  call test_valid_pattern("yes?", "yes, ye", "yes ye")
-  call test_invalid_pattern("yes?", "yesss")
+  number_failed = number_failed + test_valid_pattern("yes?", "yes, ye", "yes ye")
+  number_failed = number_failed + test_invalid_pattern("yes?", "yesss")
 
   ! n times exactly
-  call test_valid_pattern("fo{2}", "foo", "foo")
-  call test_invalid_pattern("fo{2}", "fo")
+  number_failed = number_failed + test_valid_pattern("fo{2}", "foo", "foo")
+  number_failed = number_failed + test_invalid_pattern("fo{2}", "fo")
 
   ! Between n and m times
-  call test_valid_pattern("go{2,3}d", "good, goood", "good goood")
-  call test_invalid_pattern("go{2,3}d", "gooood")
+  number_failed = number_failed + test_valid_pattern("go{2,3}d", "good, goood", "good goood")
+  number_failed = number_failed + test_invalid_pattern("go{2,3}d", "gooood")
 
   ! At least n times
-  call test_valid_pattern("go{2,}", "goo, gooo", "goo gooo")
-  call test_invalid_pattern("go{2,}", "go")
+  number_failed = number_failed + test_valid_pattern("go{2,}", "goo, gooo", "goo gooo")
+  number_failed = number_failed + test_invalid_pattern("go{2,}", "go")
 
+  print*, new_line('A') // new_line('A')
+  if (number_failed > 0) then
+     print*, "Some tests failed:", number_failed
+  else
+     print*, "All tests passed!"
+  end if
+  
 contains
 
-  subroutine test_valid_pattern(pattern, valid_match, expected)
+  integer function test_valid_pattern(pattern, valid_match, expected)
     character(len=*), intent(in) :: pattern
     character(len=*), intent(in) :: valid_match
     character(len=*), intent(in) :: expected
@@ -143,6 +152,7 @@ contains
     logical :: status
 
     type(token_type), dimension(:), allocatable :: tokens
+    character(len=:), allocatable :: string
 
     print('(A,A,A,A,A)'), "Searching '", valid_match, "' for '", pattern, "'"
     print('(A,A)'), "Should match: ", expected
@@ -150,20 +160,30 @@ contains
     tokens = tokeniser(pattern, valid_match)
 
     if (size(tokens) > 0) then
-       call print_tokens(tokens)
+       string = print_tokens(tokens)
+       if (string == expected) then
+          test_valid_pattern = 0
+       else
+          test_valid_pattern = 1
+          print*, "    *** FAILED ***"
+       end if
+    else
+       test_valid_pattern = 1
+       print*, "    *** FAILED ***"
     end if
-    
+
     print('(A)'), "--------------------"
 
-  end subroutine test_valid_pattern
+  end function test_valid_pattern
   
-  subroutine test_invalid_pattern(pattern, invalid_match)
+  integer function test_invalid_pattern(pattern, invalid_match)
     character(len=*), intent(in) :: pattern
     character(len=*), intent(in) :: invalid_match
 
     logical :: status
 
     type(token_type), dimension(:), allocatable :: tokens
+    character(len=:), allocatable :: string    
 
     print('(A,A,A,A,A)'), "Searching '", invalid_match, "' for '", pattern, "'"
     print('(A)'), "Should not match"
@@ -171,23 +191,33 @@ contains
     tokens = tokeniser(pattern, invalid_match)
 
     if (size(tokens) > 0) then
-       call print_tokens(tokens)
+       string = print_tokens(tokens)
+       test_invalid_pattern = 1
+       print*, "    *** FAILED ***"
+    else
+       test_invalid_pattern = 0
     end if
     
     print('(A)'), "--------------------"
 
-  end subroutine test_invalid_pattern
+  end function test_invalid_pattern
 
-  subroutine print_tokens(tokens)
+  function print_tokens(tokens) result(string)
     type(token_type), dimension(:), intent(in) :: tokens
+    character(len=:), allocatable :: string
     integer :: i
     
+    string = ""
+
     do i=1, size(tokens)
        write(*,'(A," ")', advance='no') tokens(i)%token
+       string = string // tokens(i)%token // " "
     end do
     print*, ""
 
-  end subroutine print_tokens
+    string = trim(string)
+
+  end function print_tokens
   
   !> Finds all instances of pattern in
   !> subject, but only the first group from each instance

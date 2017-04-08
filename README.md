@@ -12,6 +12,18 @@ This contains the absolute bare minimum to be the least bit useful:
 
 `test.f90` is basically a minimal port of `pcredemo.c`
 
+`test3.f90` runs a whole bunch of regex tests
+
+- Compile test like: `gfortran-7 -g -std=f2008 pcre_constants.f90 pcre_module.f90 test3.f90 -o test3 -lpcre`
+
+
+Requirements
+------------
+
+- libpcre1
+- Fortran compiler with decent F2008 support
+    - Tested with gfortran 5.4.1, 6.2.1, 7.0.1
+
 Bugs/gotchas
 ------------
 
@@ -22,7 +34,7 @@ Bugs/gotchas
 TODO
 ----
 
-Pull requests more than welcome
+Pull requests more than welcome!
 
 - wrap the rest of the API
 - add module for passing strings between C/Fortran
