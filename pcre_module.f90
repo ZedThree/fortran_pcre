@@ -23,7 +23,7 @@ module pcre_module
        integer(c_int), intent(in), value :: options
        type(c_ptr), intent(inout) :: errptr
        integer(c_int), intent(out) :: erroffset
-       type(c_ptr), intent(in) :: tableptr
+       type(c_ptr), value, intent(in) :: tableptr
      end function c_pcre_compile
 
      ! int pcre_exec(const pcre*, const pcre_extra*, const char*,

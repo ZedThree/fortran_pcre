@@ -27,7 +27,7 @@ Requirements
 Bugs/gotchas
 ------------
 
-- some character classes like `\s` and `\d` don't work. No idea why.
+- ~~some character classes like `\s` and `\d` don't work. No idea why.~~ **Fixed**
 - super minimal functionality at the mo
 
 
@@ -36,11 +36,11 @@ TODO
 
 Pull requests more than welcome!
 
-- wrap the rest of the API
-- add module for passing strings between C/Fortran
-- add the rest of the constants/hex flags
-- move constants into separate module
-- add tests!
-- make object-oriented?
+- [ ] wrap the rest of the API
+- [ ] add module for passing strings between C/Fortran
+- [x] add the rest of the constants/hex flags
+- [x] move constants into separate module
+- [x] add tests!
+- [ ] make object-oriented?
 
 

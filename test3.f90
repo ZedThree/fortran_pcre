@@ -92,12 +92,12 @@ program test_pcre
   number_failed = number_failed + test_invalid_pattern("\D+", "0101")
 
   ! Word character
-  number_failed = number_failed + test_valid_pattern("\w+", "string", "string")
-  number_failed = number_failed + test_invalid_pattern("\w+", "0101")
+  number_failed = number_failed + test_valid_pattern("\w+", "string01", "string01")
+  number_failed = number_failed + test_invalid_pattern("\w+", ".$?%")
 
   ! Not a word character
   number_failed = number_failed + test_valid_pattern("\W+", ".$?%", ".$?%")
-  number_failed = number_failed + test_invalid_pattern("\W+", "string")
+  number_failed = number_failed + test_invalid_pattern("\W+", "string01")
 
   ! Alternation
   number_failed = number_failed + test_valid_pattern("apple|orange", "orange, apple", "orange apple")
