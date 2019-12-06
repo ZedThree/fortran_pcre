@@ -20,7 +20,7 @@ This contains the absolute bare minimum to be the least bit useful:
 Requirements
 ------------
 
-- libpcre1
+- libpcre1, available at https://www.pcre.org/
 - Fortran compiler with decent F2008 support
     - Tested with gfortran 5.4.1, 6.2.1, 7.0.1
 
@@ -42,5 +42,6 @@ Pull requests more than welcome!
 - [x] move constants into separate module
 - [x] add tests!
 - [ ] make object-oriented?
+- [ ] add license (PCRE is distributed under a 3-clause BSD license, so...)
 
 

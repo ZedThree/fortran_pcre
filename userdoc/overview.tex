@@ -1,0 +1,130 @@
+% Requirements for the Software Design Specification
+% ==================================================
+% 
+% General
+% -------
+% Described below are the minimum elements in the Software Design Specification. Certain
+% elements may not be applicable; however, the format of the specification shall document
+% consideration of each element and “N/A” shall be used when an item does not apply.
+
+\chapter{Introduction}
+% 1. Introduction
+% ---------------
+
+%  1. State the purpose of the design specification.
+%  2. Include the name and version of the software to be developed or modified and a brief description of the application.
+%  3. Identify the Responsible Group and the computer system where the software will be implemented.
+%  4. Reference the applicable functional specification which details the requirements of the software product.
+
+TBD.
+
+\chapter{Program Structure}
+%  1. Describe how the software will be structured to satisfy the requirements of the Software Functional Specification (SFS).
+%  2. Items addressed should include, as appropriate, a description of the software structure, software components, interfaces, and data necessary for the implementation (programming) phase.
+
+TBD.
+
+\chapter{Coding Conventions}
+
+\section{Language Standard}
+
+TBD.
+
+\section{Error Handling}
+
+TBD.
+
+\section{Namespace}
+
+TBD.
+
+\section{Inline Documentation}
+
+Doxygen is used for generating API documentation; all program elements (code, types, data structures) should have associated Doxygen-compatible comments associated providing a description, references/citations, and equations as applicable. Function arguments should be documented with data flow direction (in, out, both). Variables containing physical quantities should be labeled with units of measure or noted as being dimensionless. Unless otherwise justified, all quantities should be provided in SI units.
+
+\section{External Dependencies}
+
+Code from external developers incorporated in the project should be kept separate from this library's code. External code should not be changed unless absolutely necessary.
+
+\section{Dynamic Memory Use}
+
+Memory usage should be periodically checked with a tool such as \texttt{valgrind} or equivalent.
+
+\section{Mutability}
+
+Ideally parameters will be marked as either \texttt{in} or \texttt{out}; in general \texttt{inout} is discouraged.  Input arguments typically precede output arguments in function argument lists.
+
+\section{Indirect Addressing}
+
+In general, \texttt{pointer} types should be avoided.
+
+\section{Code Format and Style}
+
+Coding style is maintained by the \texttt{findent} tool using the formatting rules listed in \texttt{uncrustify.fsl.cfg}. This configuration file is stored in the \texttt{contrib/uncrustify} directory under the main project directory and is retained in version control as part of the project.
+
+\chapter{Development Environment}
+%  1. Define the development environment necessary to implement the program.
+%  2. The definition shall include:
+%    * the operating system the program will be developed in,
+%    * applicable hardware configuration requirements,
+%    * required development tools,
+%    * third party libraries that are to be embedded in the program,
+%    * the directory structure for source code and libraries, and
+%    * the instructions for compiling and linking the program.
+
+\section{Requirements}
+The following software and libraries are required for building the PCRE module:
+
+\begin{itemize}
+\item TBD
+\end{itemize}
+
+Any operating system which supports these tools is suitable for developing PCRE however the baseline platforms to be supported are Linux, Microsoft Windows, and Apple OSX.
+
+\section{Optional Tools}
+The following tools are optional, used for maintaining the code documentation, packaging the software for distribution, and maintaining code style and formatting:
+
+\begin{itemize}
+\item Doxygen, for generating API (application program interface) documentation from the C++ source code in HTML, RTF, and PDF format. Available at \url{http://www.doxygen.nl/}
+\item TeXLive, for converting the documentation to PDF, see \url{https://www.tug.org/texlive/} TeXLive is preferred to MiXTeX on Windows since it provides a consistent experience on multiple platforms and reduces effort configuring LaTeX. 
+\item \texttt{uncrustify}, for maintaining consistent code formatting and style. Available at \url{http://uncrustify.sourceforge.net/} The configuration used for this project is located at \texttt{contrib/uncrustify/uncrustify.fai.cfg}
+\item A software packaging system such as NSIS or WIX, ideally compatible with CPack (part of CMake)
+\end{itemize}
+
+\section{Build Process}
+The build process is as follows on Microsoft Windows using Visual Studio:
+\begin{enumerate}
+\item Install Visual Studio and CMake
+\item Copy the project tree to a local directory (unpack from zip file, retrieve from source control with \texttt{git clone}, Team Foundation Server, or Visual Studio)
+\item Create a directory named \texttt{build} beneath the local project root
+\item Run \texttt{cmake ..} from a command line within the \texttt{build} directory. CMake should warn if any of the required dependencies could not be found.
+\item If CMake is successful, the file \texttt{fsl\_pcre.sln} should be generated; open this file with Visual Studio, build the \texttt{BUILD\_ALL} project to compile the library and the test applications.
+\item To run the unit tests, build the \texttt{ALL\_TESTS} project or run \texttt{ctest -C Debug} from within the \texttt{build} directory.
+\item To build the documentation, build the \texttt{doc\_doxygen} project (requires Doxygen and LaTeX)
+\item To package the software for application development (source, libraries, modules, documentation, test applications and reference data), run \texttt{cpack} from the \texttt{build} directory.
+\end{enumerate}
+
+All compiler and linker options are configured by CMake as defined within the file \texttt{CMakeLists.txt}.
+
+\section{Project Structure}
+The project directory is organized as follows:
+
+\VerbatimInput{project_directory_tree.txt}
+
+\clearpage
+
+where:
+
+\begin{itemize}
+\item \texttt{build} is an initially (mostly) empty directory used by CMake to build the project.
+\item \texttt{cmake} contains cmake utilities which find and configure dependencies and assist with test coverage analysis.
+\item \texttt{contrib} contains auxiliary scripts and data used for maintaining the code base.
+\item \texttt{doxygen} contains Doxygen configuration files for customizing PDF output.
+% \item \texttt{ext\_lib} contains documentation explaining how to configure software dependencies.
+\item \texttt{img} contains images and logos to be used in documentation and installers.
+\item \texttt{fsl\_pcre/src} contains source code.
+%\item \texttt{test/data} contains reference data files used by unit test to verify the library.
+\item \texttt{test/src} contains source files for unit tests.
+\item \texttt{userdoc} contains static documentation files, bibliographic information, \textit{etc.} to include in the generated documentation.
+\end{itemize}
+
