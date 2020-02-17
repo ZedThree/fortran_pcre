@@ -1,7 +1,8 @@
 fortran_pcre
 ============
 
-A very basic wrapper around the PCRE regex C library. Use at your own risk!
+A very basic wrapper around the PCRE regex C library. Use at your own
+risk! MIT licence.
 
 This contains the absolute bare minimum to be the least bit useful:
 
@@ -42,5 +43,5 @@ Pull requests more than welcome!
 - [x] move constants into separate module
 - [x] add tests!
 - [ ] make object-oriented?
-
+- [ ] add CMake support
 
